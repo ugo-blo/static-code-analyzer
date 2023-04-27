@@ -54,57 +54,76 @@ class BlankLineError(Exception):
 
 
 def check_line_too_long(line, line_index):
-    if len(line.strip()) > 79:
-        raise LineTooLongError(line_index)
+    try:
+        if len(line.strip()) > 79:
+            raise LineTooLongError(line_index)
+    except LineTooLongError as e:
+        print(e)
 
 
 def check_indentation(line, line_index):
-    if line.startswith(' '):
-        if (len(line) - len(line.lstrip())) % 4 != 0:
-            raise IndentationMultipleError(line_index)
+    try:
+        if line.startswith(' '):
+            if (len(line) - len(line.lstrip())) % 4 != 0:
+                raise IndentationMultipleError(line_index)
+    except IndentationMultipleError as e:
+        print(e)
 
 
 def check_semicolon(line, line_index):
-    print(line.rstrip)
-    if ';' in line.rstrip:
-        raise SemicolonError(line_index)
+    try:
+        line_splitted = line.split('#')
+        if line_splitted[0].strip().endswith(';'):
+            raise SemicolonError(line_index)
+    except SemicolonError as e:
+        print(e)
 
 
 def check_space(line, line_index):
-    if '#' in line:
+    try:
         new_line = line.split('#')
-        if len(new_line[0]) - len(new_line[0].rstrip()) < 2:
-            raise SpaceError(line_index)
+        if '#' in line and new_line[0].strip() != '':
+            if len(new_line[0]) - len(new_line[0].rstrip()) < 2:
+                raise SpaceError(line_index)
+    except SpaceError as e:
+        print(e)
 
 
 def check_todo(line, line_index):
-    if '#' in line:
-        new_line = line.split('#')
-        if 'todo' in new_line[1].lower():
-            raise ToDoError(line_index)
+    try:
+        if '#' in line:
+            new_line = line.split('#')
+            if 'todo' in new_line[1].lower():
+                raise ToDoError(line_index)
+    except ToDoError as e:
+        print(e)
 
 
-def check_blank_line(line, line_index, *lines):
-    too_much_blank_lines = True
-    for line in lines:
-        if line != '\n':
-            too_much_blank_lines = False
-            break
-    if too_much_blank_lines and line != '\n':
-        raise BlankLineError(line_index)
+def check_blank_line(actual_line, line_index, file_target):
+    blank_line_counter = 0
+    try:
+        with open(file_target, 'r') as file:
+            for num, line in enumerate(file, start=1):
+                if line == actual_line and blank_line_counter > 2 and num == line_index:
+                    raise BlankLineError(line_index)
+                if line.strip() == '':
+                    blank_line_counter += 1
+                else:
+                    blank_line_counter = 0
+    except BlankLineError as e:
+        print(e)
 
 
 def analyze_file():
-    with open(input(), 'r') as file:
+    file_target = input()
+    with open(file_target, 'r') as file:
         for num, line in enumerate(file, start=1):
-            try:
-                check_line_too_long(line, num)
-                check_indentation(line, num)
-                check_semicolon(line, num)
-                check_space(line, num)
-                check_todo(line, num)
-            except Exception as e:
-                print(e)
+            check_line_too_long(line, num)
+            check_indentation(line, num)
+            check_semicolon(line, num)
+            check_space(line, num)
+            check_todo(line, num)
+            check_blank_line(line, num, file_target)
 
 
 if __name__ == '__main__':
