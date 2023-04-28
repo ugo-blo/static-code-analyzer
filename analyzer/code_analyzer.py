@@ -1,4 +1,3 @@
-# write your code here
 
 class LineTooLongError(Exception):
     def __init__(self, line_index):
